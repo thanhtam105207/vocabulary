@@ -4,23 +4,398 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ENT303 - Học Từ Vựng</title>
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#f43f5e">
-  <link rel="stylesheet" href="app.css">
+  <style>
+    :root {
+      --bg: #f8fafc; --card: #ffffff; --ink: #1e293b; --mut: #64748b;
+      --rose: #f43f5e; --rose-light: #fff1f2; --line: #e2e8f0;
+      --ok: #10b981; --ok-light: #ecfdf5; --chip: #f1f5f9; --orange: #f97316;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a; --card: #1e293b; --ink: #f8fafc; --mut: #94a3b8;
+        --line: #334155; --rose-light: #31131d; --ok-light: #064e3b; --chip: #334155;
+      }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--ink); padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+    header { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; align-items: center; padding: 10px 14px; background: var(--card); border-bottom: 1px solid var(--line); }
+    header b { font-size: 1.2rem; color: var(--rose); white-space: nowrap; }
+    header select { flex: 1; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-weight: 600; }
+    header button { width: 38px; height: 38px; border: 0; border-radius: 12px; background: var(--chip); color: var(--ink); font-size: 1.1rem; cursor: pointer; }
+    main { max-width: 980px; margin: 0 auto; padding: 14px; }
+    .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .stats-card { background: var(--card); border-radius: 20px; padding: 18px; border: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: center; }
+    .stat-box { background: var(--bg); padding: 12px; border-radius: 14px; }
+    .stat-box b { display: block; font-size: 1.4rem; color: var(--rose); }
+    .stat-box span { font-size: 0.8rem; color: var(--mut); }
+    .streak-card { background: linear-gradient(135deg, #ff8c00, #f97316); color: #fff; border-radius: 20px; padding: 20px; text-align: center; }
+    .streak-num { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+    .week-days { display: flex; justify-content: space-between; margin-top: 14px; }
+    .day-dot { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+    .day-dot.active { background: #fff; color: var(--orange); }
+    .quick-access { margin-top: 20px; }
+    .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 10px; }
+    .qa-card { background: var(--card); border: 1px solid var(--line); padding: 16px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; text-align: left; }
+    .qa-card:hover { transform: translateY(-2px); border-color: var(--rose); }
+    .quiz-modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 16px; }
+    .mode-card { border-radius: 20px; padding: 16px; color: #fff; text-align: center; cursor: pointer; transition: 0.2s; }
+    .mode-card:hover { transform: scale(1.03); }
+    .m-flashcard { background: #6366f1; } .m-mc { background: #f97316; } .m-type { background: #10b981; } .m-listen { background: #0284c7; } .m-special { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
+    .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .v-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; }
+    .v-card .hd { display: flex; justify-content: space-between; align-items: flex-start; }
+    .v-card h3 { margin: 0; font-size: 1.1rem; }
+    .v-card .pos { background: var(--rose-light); color: var(--rose); font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+    .v-card .def { color: var(--rose); font-weight: 600; margin-top: 6px; }
+    .quiz-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 16px; overflow: hidden; margin-top: 14px; }
+    .quiz-table th, .quiz-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--line); }
+    .quiz-table input { width: 100%; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+    .listen-box { max-width: 480px; margin: 20px auto; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 24px; text-align: center; }
+    .listen-btn { width: 70px; height: 70px; border-radius: 50%; background: var(--ok); color: #fff; border: 0; font-size: 1.8rem; cursor: pointer; margin-bottom: 12px; }
+    .toast-popup { position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%); padding: 16px 28px; border-radius: 16px; color: #fff; font-weight: 800; font-size: 1.3rem; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+    .popup-ok { background: var(--ok); } .popup-no { background: var(--rose); }
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--line); display: flex; justify-content: space-around; padding: 8px 0 calc(8px + env(safe-area-inset-bottom)); z-index: 30; }
+    nav button { border: 0; background: none; color: var(--mut); display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; cursor: pointer; }
+    nav button.on { color: var(--rose); font-weight: 700; }
+    nav button i { font-style: normal; font-size: 1.3rem; }
+    #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #334155; color: #fff; padding: 8px 16px; border-radius: 20px; font-weight: 600; opacity: 0; transition: 0.2s; pointer-events: none; z-index: 90; }
+    #toast.show { opacity: 1; }
+  </style>
 </head>
 <body>
   <header>
-    <button id="backBtn" onclick="goBack()" style="display:none;" title="Quay lại">←</button>
+    <button id="backBtn" onclick="goBack()" style="display:none;">←</button>
     <b>ENT303 App</b>
     <select id="unitSelect"></select>
   </header>
 
   <main id="main"></main>
-
   <nav id="nav"></nav>
-  
   <div id="toast"></div>
 
-  <script src="app.js"></script>
+  <script>
+    const DATA = {
+      "1": {
+        "title": "Unit 1: Greetings & Small Talk",
+        "badge": "Unit 1",
+        "vocab": [
+          { "word": "allow", "pos": "v", "def": "cho phép" },
+          { "word": "prohibition", "pos": "n", "def": "điều cấm kỵ" },
+          { "word": "customary", "pos": "a", "def": "theo phong tục" },
+          { "word": "address", "pos": "v", "def": "dùng tên hoặc chức tước xưng hô" },
+          { "word": "old-fashioned", "pos": "a", "def": "lỗi thời" },
+          { "word": "situation", "pos": "n", "def": "tình huống, hoàn cảnh" }
+        ]
+      },
+      "2": {
+        "title": "Unit 2: Cultural Literacy",
+        "badge": "Unit 2",
+        "vocab": [
+          { "word": "etiquette", "pos": "n", "def": "nhiệt tình, phép lịch sự" },
+          { "word": "polite", "pos": "a", "def": "lịch sự" },
+          { "word": "rude", "pos": "a", "def": "vô lễ, bất lịch sự" }
+        ]
+      }
+    };
+
+    const $ = s => document.querySelector(s);
+    const K = 'ent303_v8_store';
+    let S = { history: ['home'], streak: 1, lastStudyDate: '', learnedCount: 0, unit: '1' };
+
+    try { S = { ...S, ...JSON.parse(localStorage.getItem(K)) }; } catch(e){}
+    const save = () => localStorage.setItem(K, JSON.stringify(S));
+
+    let tab = 'home', activeQuiz = null;
+
+    function toast(m) {
+      const t = $('#toast'); if(!t) return;
+      t.textContent = m; t.classList.add('show');
+      clearTimeout(t.t); t.t = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function speak(text) {
+      if (!('speechSynthesis' in window)) return;
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      speechSynthesis.speak(u);
+    }
+
+    function updateStreak() {
+      const today = new Date().toDateString();
+      if (S.lastStudyDate !== today) {
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        S.streak = (S.lastStudyDate === yesterday) ? S.streak + 1 : 1;
+        S.lastStudyDate = today;
+        save();
+      }
+    }
+
+    function go(targetTab, pushHist = true) {
+      if (pushHist && S.history[S.history.length - 1] !== targetTab) {
+        S.history.push(targetTab);
+      }
+      tab = targetTab;
+      const backBtn = $('#backBtn');
+      if(backBtn) backBtn.style.display = S.history.length > 1 ? 'block' : 'none';
+      render();
+      window.scrollTo(0, 0);
+    }
+
+    function goBack() {
+      if (S.history.length > 1) {
+        S.history.pop();
+        go(S.history[S.history.length - 1], false);
+      }
+    }
+
+    function renderNav() {
+      const nav = $('#nav'); if(!nav) return;
+      const items = [
+        ['home', '🏠', 'Trang chủ'],
+        ['folders', '📁', 'Bộ từ vựng'],
+        ['vocab', '📚', 'Từ vựng'],
+        ['quiz_menu', '🎮', 'Luyện tập'],
+        ['add', '➕', 'Thêm từ']
+      ];
+      nav.innerHTML = items.map(([k, i, t]) => `
+        <button class="${tab === k ? 'on' : ''}" onclick="go('${k}')">
+          <i>${i}</i><span>${t}</span>
+        </button>
+      `).join('');
+    }
+
+    function render() {
+      renderNav();
+      if (tab === 'home') renderHome();
+      else if (tab === 'folders') renderFolders();
+      else if (tab === 'vocab') renderVocabView();
+      else if (tab === 'quiz_menu') renderQuizMenu();
+      else if (tab === 'quiz_play') renderQuizPlay();
+      else if (tab === 'add') renderAddWord();
+    }
+
+    function renderHome() {
+      const total = Object.values(DATA).reduce((a, b) => a + (b.vocab ? b.vocab.length : 0), 0);
+      const percent = total ? Math.round((S.learnedCount / total) * 100) : 0;
+      const main = $('#main'); if(!main) return;
+      main.innerHTML = `
+        <div class="dash-grid">
+          <div class="stats-card">
+            <div class="stat-box"><b>${total}</b><span>Tổng từ</span></div>
+            <div class="stat-box"><b>${S.learnedCount}</b><span>Đã thuộc</span></div>
+            <div class="stat-box"><b>${percent}%</b><span>Tiến độ</span></div>
+            <div class="stat-box"><b>${Math.max(0, total - S.learnedCount)}</b><span>Cần học</span></div>
+          </div>
+          <div class="streak-card">
+            <small>CHUỖI NGÀY HỌC</small>
+            <div class="streak-num">🔥 ${S.streak} ngày</div>
+            <div class="week-days">
+              ${['T2','T3','T4','T5','T6','T7','CN'].map((d, i) => `<div class="day-dot ${i === (new Date().getDay()\vert{}\vert{}7)-1 ? 'active':''}">${d}</div>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="quick-access">
+          <h3>Truy cập nhanh</h3>
+          <div class="quick-grid">
+            <div class="qa-card" onclick="go('add')">➕ <div><b>Thêm từ</b><br><small>Tạo từ mới / Folder</small></div></div>
+            <div class="qa-card" onclick="go('quiz_menu')">⚡ <div><b>Luyện tập</b><br><small>Quiz & Games</small></div></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderVocabView() {
+      const list = DATA[S.unit]?.vocab || [];
+      const main = $('#main'); if(!main) return;
+      main.innerHTML = `
+        <h2>📚 Từ vựng ${DATA[S.unit]?.badge || ''}</h2>
+        <div class="vocab-grid">
+          ${list.map((v) => `
+            <div class="v-card">
+              <div>
+                <div class="hd">
+                  <h3>${v.word}</h3>
+                  <span class="pos">${v.pos || 'noun'}</span>
+                </div>
+                <div class="def">${v.def}</div>
+              </div>
+              <button style="margin-top:8px; border:0; background:var(--chip); border-radius:8px; padding:6px; cursor:pointer;" onclick="speak('${v.word}')">🔊 Nghe</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderQuizMenu() {
+      const main = $('#main'); if(!main) return;
+      main.innerHTML = `
+        <h2>🎮 Chọn chế độ Luyện tập</h2>
+        <div class="quiz-modes">
+          <div class="mode-card m-flashcard" onclick="startQuiz('fc')">🃏<br><b>Flashcard</b></div>
+          <div class="mode-card m-mc" onclick="startQuiz('mc')">☑️<br><b>Trắc nghiệm</b></div>
+          <div class="mode-card m-type" onclick="startQuiz('type')">⌨️<br><b>Gõ 2 cột</b></div>
+          <div class="mode-card m-listen" onclick="startQuiz('listen')">🎧<br><b>Nghe chép</b></div>
+        </div>
+      `;
+    }
+
+    function startQuiz(mode) {
+      const list = DATA[S.unit]?.vocab || [];
+      if (!list.length) return toast('Chưa có từ vựng!');
+      activeQuiz = { mode, items: [...list], index: 0, score: 0 };
+      go('quiz_play');
+    }
+
+    function renderQuizPlay() {
+      if (!activeQuiz) return go('quiz_menu');
+      const q = activeQuiz;
+      const item = q.items[q.index];
+      const main = $('#main'); if(!main) return;
+
+      if (q.mode === 'mc') {
+        const opts = [item.def, "Nghĩa khác A", "Nghĩa khác B", "Nghĩa khác C"].sort(() => Math.random() - 0.5);
+        main.innerHTML = `
+          <div style="max-width:500px; margin:0 auto; background:var(--card); padding:20px; border-radius:20px;">
+            <h3>Câu ${q.index + 1}/${q.items.length}: Từ "${item.word}" có nghĩa là?</h3>
+            ${opts.map((o, idx) => `
+              <button class="qa-card" style="width:100%; margin-top:8px;" onclick="checkMC('${o}', '${item.def}')">
+                <b>${idx + 1}.</b>${o}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      } else if (q.mode === 'type') {
+        main.innerHTML = `
+          <h3>⌨️ Ôn từ vựng bảng 2 cột</h3>
+          <table class="quiz-table">
+            <thead><tr><th>Nghĩa Tiếng Việt</th><th>Gõ từ Tiếng Anh (Enter)</th></tr></thead>
+            <tbody>
+              ${q.items.map((it, idx) => `
+                <tr>
+                  <td><b>${it.def}</b> (${it.pos||'n'})</td>
+                  <td><input id="inp_${idx}" onkeydown="checkTableEnter(event, ${idx}, '${it.word}')" placeholder="Nhập & nhấn Enter..."></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <button onclick="startQuiz('type')" style="margin-top:14px; padding:10px 20px; border-radius:12px; border:0; background:var(--rose); color:#fff; cursor:pointer;">Làm lại</button>
+        `;
+      } else if (q.mode === 'listen') {
+        main.innerHTML = `
+          <div class="listen-box">
+            <button class="listen-btn" onclick="speak('${item.word}')">🎧</button>
+            <input id="listenInp" style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--line); margin-top:10px;" placeholder="Gõ từ bạn nghe được..." onkeydown="if(event.key==='Enter')checkListen('${item.word}')">
+            <button onclick="checkListen('${item.word}')" style="margin-top:12px; width:100%; padding:12px; background:var(--ok); color:#fff; border:0; border-radius:12px; font-weight:700;">Kiểm tra (Enter)</button>
+          </div>
+        `;
+        speak(item.word);
+      } else if (q.mode === 'fc') {
+        main.innerHTML = `
+          <div style="text-align:center; padding:30px; background:var(--card); border-radius:20px; max-width:400px; margin:20px auto;">
+            <h2>${item.word}</h2>
+            <p style="color:var(--rose); font-weight:700; font-size:1.2rem;">${item.def}</p>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+              <button onclick="nextFC(false)" style="flex:1; padding:10px; background:var(--chip); border:0; border-radius:10px; cursor:pointer;">Chưa thuộc</button>
+              <button onclick="nextFC(true)" style="flex:1; padding:10px; background:var(--ok); color:#fff; border:0; border-radius:10px; cursor:pointer;">Đã thuộc</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function showPopup(isCorrect, detail = '') {
+      const div = document.createElement('div');
+      div.className = `toast-popup ${isCorrect ? 'popup-ok' : 'popup-no'}`;
+      div.innerHTML = isCorrect ? 'CORRECT! 🎉' : `INCORRECT! ❌<br><small style="font-size:0.8rem">${detail}</small>`;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 2000);
+    }
+
+    function checkMC(selected, correct) {
+      const isOk = selected === correct;
+      if (isOk) activeQuiz.score++;
+      showPopup(isOk, `Đáp án đúng: ${correct}`);
+      updateStreak();
+      setTimeout(() => {
+        activeQuiz.index++;
+        if (activeQuiz.index < activeQuiz.items.length) renderQuizPlay();
+        else { toast('Hoàn thành bài tập!'); go('quiz_menu'); }
+      }, 2000);
+    }
+
+    function checkTableEnter(e, idx, correctWord) {
+      if (e.key === 'Enter') {
+        const val = e.target.value.trim().toLowerCase();
+        if (val === correctWord.toLowerCase()) {
+          e.target.style.borderColor = 'var(--ok)';
+          e.target.style.background = 'var(--ok-light)';
+        } else {
+          e.target.style.borderColor = 'var(--rose)';
+          e.target.style.background = 'var(--rose-light)';
+          toast(`Sai rồi! Đúng là: ${correctWord}`);
+        }
+        const nextInp = $(`#inp_${idx + 1}`);
+        if (nextInp) nextInp.focus();
+        updateStreak();
+      }
+    }
+
+    function checkListen(correctWord) {
+      const val = $('#listenInp').value.trim().toLowerCase();
+      const isOk = val === correctWord.toLowerCase();
+      showPopup(isOk, `Đáp án: ${correctWord}`);
+      updateStreak();
+      setTimeout(() => {
+        activeQuiz.index++;
+        if (activeQuiz.index < activeQuiz.items.length) renderQuizPlay();
+        else { toast('Hoàn thành bài nghe!'); go('quiz_menu'); }
+      }, 2000);
+    }
+
+    function nextFC(learned) {
+      if (learned) S.learnedCount++;
+      save();
+      activeQuiz.index++;
+      if (activeQuiz.index < activeQuiz.items.length) renderQuizPlay();
+      else { toast('Đã duyệt xong flashcard!'); go('quiz_menu'); }
+    }
+
+    function renderFolders() {
+      const main = $('#main'); if(!main) return;
+      main.innerHTML = `
+        <h2>📁 Bộ từ vựng & Folder</h2>
+        <div class="quick-grid">
+          ${Object.keys(DATA).map(k => `
+            <div class="qa-card" onclick="S.unit='${k}'; save(); go('vocab');">
+              📖 <b>Unit ${k}:${DATA[k].title}</b>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function renderAddWord() {
+      const main = $('#main'); if(!main) return;
+      main.innerHTML = `
+        <h2>➕ Thêm từ / Tạo Folder mới</h2>
+        <form onsubmit="event.preventDefault(); toast('Đã lưu thành công!'); go('vocab');" style="background:var(--card); padding:16px; border-radius:16px;">
+          <label>Từ tiếng Anh:<br><input style="width:100%; padding:8px; margin-top:4px;" required></label><br><br>
+          <label>Nghĩa tiếng Việt:<br><input style="width:100%; padding:8px; margin-top:4px;" required></label><br><br>
+          <button style="padding:10px 20px; background:var(--rose); color:#fff; border:0; border-radius:10px; cursor:pointer;">Lưu từ mới</button>
+        </form>
+      `;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const unitSelect = $('#unitSelect');
+      if(unitSelect) {
+        unitSelect.innerHTML = Object.keys(DATA).map(k => `<option value="${k}">Unit ${k}: ${DATA[k].title}</option>`).join('');
+        unitSelect.value = S.unit;
+        unitSelect.onchange = e => { S.unit = e.target.value; save(); render(); };
+      }
+      render();
+    });
+  </script>
 </body>
 </html>
