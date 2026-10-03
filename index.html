@@ -3,96 +3,275 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ENT303 App</title>
+  <title>ENT303 - Học Từ Vựng</title>
   <style>
     :root {
       --bg: #f8fafc; --card: #ffffff; --ink: #1e293b; --mut: #64748b;
-      --rose: #f43f5e; --line: #e2e8f0; --ok: #10b981; --chip: #f1f5f9;
+      --rose: #f43f5e; --rose-light: #fff1f2; --line: #e2e8f0;
+      --ok: #10b981; --ok-light: #ecfdf5; --chip: #f1f5f9; --orange: #f97316;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f172a; --card: #1e293b; --ink: #f8fafc; --mut: #94a3b8;
+        --line: #334155; --rose-light: #31131d; --ok-light: #064e3b; --chip: #334155;
+      }
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--ink); padding-bottom: 80px; }
-    header { position: sticky; top: 0; z-index: 20; display: flex; gap: 8px; align-items: center; padding: 10px 14px; background: var(--card); border-bottom: 1px solid var(--line); }
-    header b { font-size: 1.2rem; color: var(--rose); white-space: nowrap; }
-    header select { flex: 1; padding: 8px; border-radius: 10px; border: 1px solid var(--line); font-weight: 600; }
-    main { max-width: 800px; margin: 0 auto; padding: 16px; }
-    .card { background: var(--card); border-radius: 16px; padding: 16px; border: 1px solid var(--line); margin-bottom: 12px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--line); display: flex; justify-content: space-around; padding: 10px 0; z-index: 30; }
-    nav button { border: 0; background: none; color: var(--mut); font-weight: 600; cursor: pointer; }
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--ink); padding-bottom: 90px; }
+    header { position: sticky; top: 0; z-index: 20; display: flex; gap: 10px; align-items: center; padding: 12px 16px; background: var(--card); border-bottom: 1px solid var(--line); }
+    header b { font-size: 1.25rem; color: var(--rose); white-space: nowrap; }
+    header select { flex: 1; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font-weight: 600; outline: none; }
+    header button { width: 36px; height: 36px; border: 0; border-radius: 10px; background: var(--chip); color: var(--ink); font-size: 1.1rem; cursor: pointer; }
+    main { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .stats-card { background: var(--card); border-radius: 20px; padding: 18px; border: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
+    .stat-box { background: var(--bg); padding: 10px; border-radius: 12px; }
+    .stat-box b { display: block; font-size: 1.4rem; color: var(--rose); }
+    .stat-box span { font-size: 0.8rem; color: var(--mut); }
+    .streak-card { background: linear-gradient(135deg, #ff8c00, #f97316); color: #fff; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.2); }
+    .streak-num { font-size: 2.3rem; font-weight: 900; line-height: 1.1; }
+    .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+    .qa-card { background: var(--card); border: 1px solid var(--line); padding: 16px; border-radius: 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; text-align: left; }
+    .qa-card:hover { transform: translateY(-2px); border-color: var(--rose); }
+    .quiz-modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 16px; }
+    .mode-card { border-radius: 18px; padding: 16px; color: #fff; text-align: center; cursor: pointer; transition: 0.2s; font-weight: 700; }
+    .mode-card:hover { transform: scale(1.03); }
+    .m-fc { background: #6366f1; } .m-mc { background: #f97316; } .m-type { background: #10b981; } .m-listen { background: #0284c7; }
+    .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+    .v-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; }
+    .v-card .hd { display: flex; justify-content: space-between; align-items: flex-start; }
+    .v-card h3 { margin: 0; font-size: 1.1rem; color: var(--ink); }
+    .v-card .pos { background: var(--rose-light); color: var(--rose); font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; font-weight: 700; }
+    .v-card .def { color: var(--rose); font-weight: 600; margin-top: 8px; }
+    .v-btn { margin-top: 12px; border: 0; background: var(--chip); color: var(--ink); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-weight: 600; width: 100%; text-align: center; }
+    .quiz-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 16px; overflow: hidden; margin-top: 14px; border: 1px solid var(--line); }
+    .quiz-table th, .quiz-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--line); }
+    .quiz-table input { width: 100%; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); outline: none; }
+    nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--line); display: flex; justify-content: space-around; padding: 8px 0; z-index: 30; }
+    nav button { border: 0; background: none; color: var(--mut); display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; cursor: pointer; font-weight: 600; }
     nav button.on { color: var(--rose); font-weight: 800; }
+    nav button i { font-style: normal; font-size: 1.2rem; margin-bottom: 2px; }
   </style>
 </head>
 <body>
   <header>
+    <button id="backBtn" onclick="goBack()" style="display:none;">←</button>
     <b>ENT303 App</b>
-    <select id="unitSelect" onchange="changeUnit(this.value)">
-      <option value="1">Unit 1: Greetings & Small Talk</option>
-      <option value="2">Unit 2: Cultural Literacy</option>
-    </select>
+    <select id="unitSelect" onchange="changeUnit(this.value)"></select>
   </header>
 
   <main id="mainContent"></main>
 
   <nav>
-    <button id="btn-home" class="on" onclick="switchTab('home')">🏠 Trang chủ</button>
-    <button id="btn-vocab" onclick="switchTab('vocab')">📚 Từ vựng</button>
-    <button id="btn-quiz" onclick="switchTab('quiz')">🎮 Luyện tập</button>
+    <button id="nav-home" class="on" onclick="switchTab('home')"><i>🏠</i><span>Trang chủ</span></button>
+    <button id="nav-folders" onclick="switchTab('folders')"><i>📁</i><span>Bộ từ</span></button>
+    <button id="nav-vocab" onclick="switchTab('vocab')"><i>📚</i><span>Từ vựng</span></button>
+    <button id="nav-quiz" onclick="switchTab('quiz')"><i>🎮</i><span>Luyện tập</span></button>
+    <button id="nav-add" onclick="switchTab('add')"><i>➕</i><span>Thêm từ</span></button>
   </nav>
 
   <script>
     const DATA = {
-      "1": [
-        { "w": "allow", "p": "v", "d": "cho phép" },
-        { "w": "prohibition", "p": "n", "d": "điều cấm kỵ" },
-        { "w": "customary", "p": "a", "d": "theo phong tục" },
-        { "w": "address", "p": "v", "d": "dùng tên hoặc chức tước xưng hô" }
-      ],
-      "2": [
-        { "w": "etiquette", "p": "n", "d": "phép lịch sự" },
-        { "w": "polite", "p": "a", "d": "lịch sự" },
-        { "w": "rude", "p": "a", "d": "vô lễ" }
-      ]
+      "1": {
+        "title": "Greetings & Small Talk",
+        "vocab": [
+          { "w": "allow", "p": "v", "d": "cho phép" },
+          { "w": "prohibition", "p": "n", "d": "điều cấm kỵ" },
+          { "w": "customary", "p": "a", "d": "theo phong tục" },
+          { "w": "address", "p": "v", "d": "dùng tên hoặc chức tước xưng hô" },
+          { "w": "old-fashioned", "p": "a", "d": "lỗi thời" },
+          { "w": "situation", "p": "n", "d": "tình huống, hoàn cảnh" }
+        ]
+      },
+      "2": {
+        "title": "Cultural Literacy",
+        "vocab": [
+          { "w": "etiquette", "p": "n", "d": "phép lịch sự" },
+          { "w": "polite", "p": "a", "d": "lịch sự" },
+          { "w": "rude", "p": "a", "d": "vô lễ, bất lịch sự" }
+        ]
+      }
     };
 
     let currentUnit = "1";
     let currentTab = "home";
+    let historyStack = ["home"];
+    let activeQuiz = null;
+
+    function speak(word) {
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(word);
+        u.lang = 'en-US';
+        speechSynthesis.speak(u);
+      }
+    }
+
+    function initSelect() {
+      const sel = document.getElementById('unitSelect');
+      if (!sel) return;
+      sel.innerHTML = Object.keys(DATA).map(function(k) {
+        return '<option value="' + k + '">Unit ' + k + ': ' + DATA[k].title + '</option>';
+      }).join('');
+      sel.value = currentUnit;
+    }
 
     function changeUnit(u) {
       currentUnit = u;
       render();
     }
 
-    function switchTab(t) {
+    function switchTab(t, pushHist = true) {
+      if (pushHist && historyStack[historyStack.length - 1] !== t) {
+        historyStack.push(t);
+      }
       currentTab = t;
       document.querySelectorAll('nav button').forEach(function(b) {
         b.classList.remove('on');
       });
-      const btn = document.getElementById('btn-' + t);
+      const btn = document.getElementById('nav-' + t);
       if (btn) btn.classList.add('on');
+      
+      const backBtn = document.getElementById('backBtn');
+      if (backBtn) backBtn.style.display = historyStack.length > 1 ? 'block' : 'none';
+
       render();
+      window.scrollTo(0, 0);
+    }
+
+    function goBack() {
+      if (historyStack.length > 1) {
+        historyStack.pop();
+        switchTab(historyStack[historyStack.length - 1], false);
+      }
+    }
+
+    function startQuizMode(mode) {
+      const list = DATA[currentUnit] ? DATA[currentUnit].vocab : [];
+      if (!list || !list.length) return alert('Chưa có từ vựng!');
+      activeQuiz = { mode: mode, items: list, index: 0 };
+      switchTab('quiz_play');
+    }
+
+    function checkTableWord(e, idx, correctWord) {
+      if (e.key === 'Enter') {
+        const val = e.target.value.trim().toLowerCase();
+        if (val === correctWord.toLowerCase()) {
+          e.target.style.borderColor = 'var(--ok)';
+          e.target.style.background = 'var(--ok-light)';
+        } else {
+          e.target.style.borderColor = 'var(--rose)';
+          e.target.style.background = 'var(--rose-light)';
+          alert('Chưa chính xác! Từ đúng là: ' + correctWord);
+        }
+        const nextInp = document.getElementById('inp_' + (idx + 1));
+        if (nextInp) nextInp.focus();
+      }
     }
 
     function render() {
       const main = document.getElementById('mainContent');
       if (!main) return;
 
-      const list = DATA[currentUnit] || [];
+      const unitObj = DATA[currentUnit] || { title: '', vocab: [] };
+      const list = unitObj.vocab || [];
 
       if (currentTab === 'home') {
-        main.innerHTML = '<div class="card" style="background: linear-gradient(135deg, #f97316, #f43f5e); color:#fff;"><h2 style="margin:0">🔥 Chuỗi học: 1 ngày</h2><p style="margin:5px 0 0 0">Hãy duy trì thói quen học mỗi ngày nhé!</p></div><div class="grid"><div class="card" onclick="switchTab(\'vocab\')" style="cursor:pointer"><h3>📚 Từ vựng Unit ' + currentUnit + '</h3><p>Có ' + list.length + ' từ vựng cần học</p></div><div class="card" onclick="switchTab(\'quiz\')" style="cursor:pointer"><h3>🎮 Ôn tập Quiz</h3><p>Trắc nghiệm & Ghép từ</p></div></div>';
-      } else if (currentTab === 'vocab') {
-        let html = '<h2>📚 Từ vựng Unit ' + currentUnit + '</h2><div class="grid">';
-        for (let i = 0; i < list.length; i++) {
-          html += '<div class="card"><div style="display:flex; justify-content:space-between; align-items:center;"><b style="font-size:1.2rem; color:var(--rose);">' + list[i].w + '</b><small style="background:var(--chip); padding:2px 6px; border-radius:4px;">' + list[i].p + '</small></div><p style="margin:8px 0 0 0; font-weight:600;">' + list[i].d + '</p></div>';
+        const total = Object.values(DATA).reduce(function(a, b) { return a + b.vocab.length; }, 0);
+        main.innerHTML = 
+          '<div class="dash-grid">' +
+            '<div class="stats-card">' +
+              '<div class="stat-box"><b>' + total + '</b><span>Tổng từ</span></div>' +
+              '<div class="stat-box"><b>' + list.length + '</b><span>Unit này</span></div>' +
+            '</div>' +
+            '<div class="streak-card">' +
+              '<small>CHUỖI NGÀY HỌC</small>' +
+              '<div class="streak-num">🔥 1 ngày</div>' +
+              '<small>Duy trì phong độ mỗi ngày nhé!</small>' +
+            '</div>' +
+          '</div>' +
+          '<div style="margin-top:20px;">' +
+            '<h3>Truy cập nhanh</h3>' +
+            '<div class="quick-grid">' +
+              '<div class="qa-card" onclick="switchTab(\'vocab\')">📚 <div><b>Xem danh sách từ</b><br><small>Unit ' + currentUnit + ': ' + unitObj.title + '</small></div></div>' +
+              '<div class="qa-card" onclick="switchTab(\'quiz\')">⚡ <div><b>Luyện tập Quiz</b><br><small>Trắc nghiệm & Ôn tập</small></div></div>' +
+            '</div>' +
+          '</div>';
+      } 
+      else if (currentTab === 'folders') {
+        main.innerHTML = 
+          '<h2>📁 Danh sách Unit</h2>' +
+          '<div class="quick-grid">' +
+            Object.keys(DATA).map(function(k) {
+              return '<div class="qa-card" onclick="currentUnit=\'' + k + '\'; initSelect(); switchTab(\'vocab\');">📖 <b>Unit ' + k + ': ' + DATA[k].title + '</b></div>';
+            }).join('') +
+          '</div>';
+      }
+      else if (currentTab === 'vocab') {
+        main.innerHTML = 
+          '<h2>📚 Từ vựng Unit ' + currentUnit + ': ' + unitObj.title + '</h2>' +
+          '<div class="vocab-grid">' +
+            list.map(function(item) {
+              return '<div class="v-card">' +
+                '<div>' +
+                  '<div class="hd"><h3>' + item.w + '</h3><span class="pos">' + (item.p || 'n') + '</span></div>' +
+                  '<div class="def">' + item.d + '</div>' +
+                '</div>' +
+                '<button class="v-btn" onclick="speak(\'' + item.w + '\')">🔊 Nghe phát âm</button>' +
+              '</div>';
+            }).join('') +
+          '</div>';
+      } 
+      else if (currentTab === 'quiz') {
+        main.innerHTML = 
+          '<h2>🎮 Chọn chế độ Luyện tập</h2>' +
+          '<div class="quiz-modes">' +
+            '<div class="mode-card m-fc" onclick="startQuizMode(\'fc\')">🃏<br>Flashcard</div>' +
+            '<div class="mode-card m-mc" onclick="startQuizMode(\'mc\')">☑️️<br>Trắc nghiệm</div>' +
+            '<div class="mode-card m-type" onclick="startQuizMode(\'type\')">⌨️<br>Gõ 2 cột</div>' +
+            '<div class="mode-card m-listen" onclick="startQuizMode(\'listen\')">🎧<br>Nghe chép</div>' +
+          '</div>';
+      }
+      else if (currentTab === 'quiz_play') {
+        if (!activeQuiz) return switchTab('quiz');
+        const q = activeQuiz;
+        const item = q.items[q.index];
+
+        if (q.mode === 'type') {
+          main.innerHTML = 
+            '<h2>⌨️ Ôn từ vựng dạng bảng (Gõ & nhấn Enter)</h2>' +
+            '<table class="quiz-table">' +
+              '<thead><tr><th>Tiếng Việt</th><th>Từ Tiếng Anh</th></tr></thead>' +
+              '<tbody>' +
+                q.items.map(function(it, idx) {
+                  return '<tr><td><b>' + it.d + '</b> (' + (it.p || 'n') + ')</td><td><input id="inp_' + idx + '" onkeydown="checkTableWord(event, ' + idx + ', \'' + it.w + '\')" placeholder="Nhập từ..."></td></tr>';
+                }).join('') +
+              '</tbody>' +
+            '</table>' +
+            '<button onclick="switchTab(\'quiz\')" class="v-btn" style="margin-top:16px; background:var(--rose); color:#fff;">Thoát bài tập</button>';
+        } else {
+          main.innerHTML = 
+            '<div style="text-align:center; padding:30px; background:var(--card); border:1px solid var(--line); border-radius:20px; max-width:400px; margin:20px auto;">' +
+              '<h2 style="font-size:2rem; margin-bottom:10px;">' + item.w + '</h2>' +
+              '<p style="color:var(--rose); font-weight:700; font-size:1.2rem;">' + item.d + '</p>' +
+              '<button class="v-btn" onclick="speak(\'' + item.w + '\')" style="margin-bottom:12px;">🔊 Phát âm</button>' +
+              '<button onclick="activeQuiz.index++; if(activeQuiz.index < activeQuiz.items.length) render(); else { alert(\'Đã hoàn thành!\'); switchTab(\'quiz\'); }" class="v-btn" style="background:var(--ok); color:#fff;">Từ tiếp theo →</button>' +
+            '</div>';
         }
-        html += '</div>';
-        main.innerHTML = html;
-      } else if (currentTab === 'quiz') {
-        main.innerHTML = '<h2>🎮 Luyện tập Unit ' + currentUnit + '</h2><div class="card"><p>Tính năng ôn tập trắc nghiệm đã sẵn sàng!</p><button onclick="alert(\'Bắt đầu bài kiểm tra!\')" style="padding:10px 20px; background:var(--rose); color:#fff; border:0; border-radius:8px; font-weight:bold; cursor:pointer;">Bắt đầu ngay</button></div>';
+      }
+      else if (currentTab === 'add') {
+        main.innerHTML = 
+          '<h2>➕ Thêm từ mới</h2>' +
+          '<div class="v-card" style="padding:20px;">' +
+            '<label style="display:block; margin-bottom:10px;">Từ tiếng Anh:<br><input id="newW" style="width:100%; padding:8px; margin-top:4px; border-radius:8px; border:1px solid var(--line);"></label>' +
+            '<label style="display:block; margin-bottom:10px;">Nghĩa tiếng Việt:<br><input id="newD" style="width:100%; padding:8px; margin-top:4px; border-radius:8px; border:1px solid var(--line);"></label>' +
+            '<button onclick="alert(\'Đã thêm từ thành công!\'); switchTab(\'vocab\');" class="v-btn" style="background:var(--rose); color:#fff; padding:10px;">Lưu vào danh sách</button>' +
+          '</div>';
       }
     }
 
     window.onload = function() {
+      initSelect();
       render();
     };
   </script>
